@@ -39,9 +39,10 @@ export default function MePage() {
     <div className="hero min-h-screen bg-base-200">
       <div className="hero-content flex-col lg:flex-row">
         <div className="text-center lg:text-left">
-          <h1 className="text-5xl font-bold">Register your URL!</h1>
+          <h1 className="text-5xl font-bold">Welcome!</h1>
           <p className="py-6">
-            You first time here. You need to register your own url address.
+            It&apos;s your first visit! To use easy-drive, you must first
+            register your user name.
           </p>
         </div>
         <div className="card w-full max-w-lg flex-shrink-0 bg-base-100 shadow-2xl">
@@ -67,11 +68,16 @@ export default function MePage() {
               </div>
             ) : null}
             <div className="form-control">
+              <label className="label">
+                <span className="label-text">
+                  You can access your files with this url
+                </span>
+              </label>
               <label className="input-group">
                 <span className="">https://easy-drive.io/</span>
                 <input
                   ref={inputRef}
-                  placeholder="anything you want"
+                  placeholder="username"
                   spellCheck={false}
                   className="input-bordered input flex-1"
                 />
