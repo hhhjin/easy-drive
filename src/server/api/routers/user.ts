@@ -50,9 +50,7 @@ export const userRouter = createTRPCRouter({
 
       const isValid = await verifyPassword(password, user.readOnlyPassword);
 
-      if (!isValid) return false;
-
-      return true;
+      if (!isValid) throw new TRPCError({ code: "FORBIDDEN" });
     }),
   updateReadOnlyPassword: protectedProcedure
     .input(

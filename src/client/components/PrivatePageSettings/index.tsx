@@ -1,29 +1,36 @@
-import { useRef } from "react";
 import { CheckIcon, QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 
 import { api } from "@client/utils/api";
 import { tw } from "@client/utils/styles";
+import { useForm } from "react-hook-form";
 
 export default function PrivatePageSettings() {
-  const passwordRef = useRef<HTMLInputElement>(null);
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setError,
+    formState: { errors },
+  } = useForm<{ readOnlyPassword: string }>();
 
   const { data: hasReadOnlyPassword } = api.user.hasReadOnlyPassword.useQuery();
 
-  const updatePassword = api.user.updateReadOnlyPassword.useMutation();
+  const updateReadOnlyPassword = api.user.updateReadOnlyPassword.useMutation();
+
+  const onSubmit = async () => {
+    try {
+      await updateReadOnlyPassword.mutateAsync({
+        password: getValues("readOnlyPassword"),
+      });
+    } catch (e) {
+      setError("readOnlyPassword", { message: "error" });
+    }
+  };
 
   return (
     <>
       <h3 className="mb-2 text-lg font-bold">Settings</h3>
-      <form
-        className="form-control w-full"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (!passwordRef.current) return;
-          await updatePassword.mutateAsync({
-            password: passwordRef.current.value,
-          });
-        }}
-      >
+      <form className="form-control w-full" onSubmit={handleSubmit(onSubmit)}>
         <label className="label">
           <span className="label-text flex items-center gap-1">
             {hasReadOnlyPassword ? "Change the password" : "Set a password"}
@@ -35,25 +42,28 @@ export default function PrivatePageSettings() {
             </div>
           </span>
         </label>
+        {errors.readOnlyPassword && (
+          <span>{errors.readOnlyPassword.message}</span>
+        )}
         <div className="input-group">
           <input
+            {...register("readOnlyPassword")}
             type="password"
             placeholder="Type here"
             className={tw(
               "input-bordered input w-full",
-              updatePassword.isSuccess && "input-success",
-              updatePassword.isError && "input-error"
+              updateReadOnlyPassword.isSuccess && "input-success",
+              errors.readOnlyPassword && "input-error"
             )}
-            ref={passwordRef}
           />
           <button
             type="submit"
             className={tw(
               "btn-square btn",
-              updatePassword.isLoading && "loading"
+              updateReadOnlyPassword.isLoading && "loading"
             )}
           >
-            {!updatePassword.isLoading && <CheckIcon />}
+            {!updateReadOnlyPassword.isLoading && <CheckIcon />}
           </button>
         </div>
       </form>
