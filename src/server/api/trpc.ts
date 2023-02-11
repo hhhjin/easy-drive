@@ -5,7 +5,6 @@ import superjson from "superjson";
 
 import { getServerAuthSession } from "../auth";
 import { prisma } from "../db";
-import { ZodError } from "zod";
 
 type CreateContextOptions = {
   session: Session | null;
@@ -30,17 +29,8 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
-  errorFormatter({ shape, error }) {
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError:
-          error.code === "BAD_REQUEST" && error.cause instanceof ZodError
-            ? error.cause.flatten()
-            : null,
-      },
-    };
+  errorFormatter({ shape }) {
+    return shape;
   },
 });
 
