@@ -1,9 +1,11 @@
 import { useForm } from "react-hook-form";
 import { signIn, useSession } from "next-auth/react";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
+import { TRPCClientError } from "@trpc/client";
 
 import { useReadOnlyPassword } from "@client/hooks/useReadOnlyPassword";
 import { tw } from "@client/utils/styles";
+import Input from "@client/components/ui/Input";
 
 interface Props {
   username: string;
@@ -26,31 +28,28 @@ export default function Barrier({ username }: Props) {
     try {
       await verifyReadOnlyPassword(username, getValues("readOnlyPassword"));
     } catch (e) {
-      setError("readOnlyPassword", { message: "error" });
+      if (e instanceof TRPCClientError) {
+        setError("readOnlyPassword", { message: e.message });
+      }
     }
   };
 
   return (
     <div className="max-w-sm flex-1">
       <form className="form-control" onSubmit={handleSubmit(onSubmit)}>
-        <div className="mb-2 text-lg font-semibold">Read Only</div>
-        {errors.readOnlyPassword && (
-          <span>{errors.readOnlyPassword.message}</span>
-        )}
-        <div className="input-group">
-          <input
-            {...register("readOnlyPassword")}
-            type="password"
-            placeholder="Enter a password"
-            className={tw(
-              "input w-full",
-              errors.readOnlyPassword && "input-error"
-            )}
-          />
-          <button className={tw("btn", isLoading && "loading")}>
-            <ArrowRightIcon />
-          </button>
-        </div>
+        <div className="mb-2 text-lg font-semibold">Read Only Password</div>
+        <Input
+          {...register("readOnlyPassword", { required: true })}
+          type="password"
+          placeholder="Enter a password"
+          className="w-full"
+          button={
+            <button className={tw("btn", isLoading && "loading")}>
+              {!isLoading && <ArrowRightIcon className="h-6 w-6" />}
+            </button>
+          }
+          errorMsg={errors.readOnlyPassword?.message}
+        />
       </form>
       {status === "unauthenticated" && (
         <>

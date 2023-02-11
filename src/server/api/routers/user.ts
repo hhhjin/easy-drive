@@ -2,18 +2,18 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
+import {
+  createUsernameSchema,
+  updateReadOnlyPasswordSchema,
+} from "@shared/validation";
 import { hashPassword, verifyPassword } from "@server/utils/secret";
 
 export const userRouter = createTRPCRouter({
   createUsername: protectedProcedure
-    .input(
-      z.object({
-        username: z.string().min(2).max(12),
-      })
-    )
+    .input(createUsernameSchema)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      const { username } = input;
+      const username = input.username.toLowerCase();
 
       await ctx.db.user.updateMany({
         data: { username },
@@ -44,25 +44,25 @@ export const userRouter = createTRPCRouter({
         where: { username },
       });
 
-      if (!user) throw new TRPCError({ code: "BAD_REQUEST" });
+      if (!user)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid username",
+        });
 
-      if (!user.readOnlyPassword) throw new TRPCError({ code: "NOT_FOUND" });
+      if (!user.readOnlyPassword) throw new TRPCError({ code: "FORBIDDEN" });
 
       const isValid = await verifyPassword(password, user.readOnlyPassword);
 
       if (!isValid) throw new TRPCError({ code: "FORBIDDEN" });
     }),
   updateReadOnlyPassword: protectedProcedure
-    .input(
-      z.object({
-        password: z.string(),
-      })
-    )
+    .input(updateReadOnlyPasswordSchema)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      const { password } = input;
+      const { readOnlyPassword } = input;
 
-      const hashedPassword = await hashPassword(password);
+      const hashedPassword = await hashPassword(readOnlyPassword);
 
       await ctx.db.user.update({
         data: { readOnlyPassword: hashedPassword },

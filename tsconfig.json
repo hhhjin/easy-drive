@@ -19,7 +19,8 @@
     "paths": {
       "@client/*": ["src/client/*"],
       "@env/*": ["src/env/*"],
-      "@server/*": ["src/server/*"]
+      "@server/*": ["src/server/*"],
+      "@shared/*": ["src/shared/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.cjs", "**/*.mjs"],

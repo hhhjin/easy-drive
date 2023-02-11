@@ -15,6 +15,6 @@ export default createNextApiHandler({
           );
         }
       : ({ error }) => {
-          error.message = "";
+          error.message = "Please try it again later.";
         },
 });

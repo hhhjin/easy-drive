@@ -2,9 +2,13 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { TRPCClientError } from "@trpc/client";
 
 import { api } from "@client/utils/api";
 import { tw } from "@client/utils/styles";
+import { createUsernameSchema } from "@shared/validation";
+import Input from "@client/components/ui/Input";
 
 export default function MePage() {
   const {
@@ -13,7 +17,9 @@ export default function MePage() {
     getValues,
     setError,
     formState: { errors },
-  } = useForm<{ username: string }>();
+  } = useForm<{ username: string }>({
+    resolver: zodResolver(createUsernameSchema),
+  });
 
   const router = useRouter();
 
@@ -23,12 +29,13 @@ export default function MePage() {
 
   const onSubmit = async () => {
     const username = getValues("username");
-
     try {
       await createUsername.mutateAsync({ username });
       await router.replace(`/${username}`);
     } catch (e) {
-      setError("username", { type: "invalid", message: "error" });
+      if (e instanceof TRPCClientError) {
+        setError("username", { message: e.message });
+      }
     }
   };
 
@@ -54,29 +61,19 @@ export default function MePage() {
         <div className="card w-full max-w-lg flex-shrink-0 bg-base-100 shadow-2xl">
           <div className="card-body">
             <form className="form-control" onSubmit={handleSubmit(onSubmit)}>
-              {errors.username ? (
-                <div className="alert alert-error shadow-lg">
-                  <span>{errors.username.message}</span>
-                </div>
-              ) : null}
-              <label className="label">
-                <span className="label-text">
-                  You can access your files with this url
-                </span>
-              </label>
-              <label className="input-group">
-                <span className="">https://easy-drive.io/</span>
-                <input
-                  {...register("username")}
-                  placeholder="username"
-                  spellCheck={false}
-                  className="input-bordered input flex-1"
-                />
-              </label>
+              <Input
+                {...register("username")}
+                placeholder="username"
+                className="input-bordered lowercase"
+                label="Your Drive URL"
+                left="https://easy-drive.io/"
+                help="Username can only contain 4 to 12 characters, including (a-z), (0-9), (_), and (.)"
+                errorMsg={errors.username?.message}
+              />
               <button
                 type="submit"
                 className={tw(
-                  "btn-primary btn mt-6",
+                  "btn-primary btn",
                   createUsername.isLoading && "loading"
                 )}
               >
