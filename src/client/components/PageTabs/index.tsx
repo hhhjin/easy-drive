@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { LockClosedIcon } from "@radix-ui/react-icons";
 
 import { tw } from "@client/utils/styles";
+import Dialog from "@client/components/ui/Dialog";
 import PrivatePageSettings from "../PrivatePageSettings";
 
 interface Props {
@@ -18,7 +19,7 @@ export default function PageTabs({ isMine, curTab }: Props) {
 
   return (
     <>
-      <div className="tabs tabs-boxed z-10 mb-4">
+      <div className="tabs tabs-boxed mb-4">
         <button
           className={tw("tab", curTab === "public" && "tab-active")}
           onClick={() => handleTabClick("public")}
@@ -32,22 +33,14 @@ export default function PageTabs({ isMine, curTab }: Props) {
           private
         </button>
         {curTab === "private" && isMine && (
-          <label htmlFor="set-password" className="tab gap-1">
-            <LockClosedIcon />
-            settings
-          </label>
+          <Dialog content={<PrivatePageSettings />}>
+            <button className="tab gap-1">
+              <LockClosedIcon />
+              settings
+            </button>
+          </Dialog>
         )}
       </div>
-      {isMine && (
-        <>
-          <input type="checkbox" id="set-password" className="modal-toggle" />
-          <label htmlFor="set-password" className="modal">
-            <label className="modal-box relative" htmlFor="">
-              <PrivatePageSettings />
-            </label>
-          </label>
-        </>
-      )}
     </>
   );
 }
