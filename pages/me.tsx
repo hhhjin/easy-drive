@@ -46,7 +46,8 @@ export default function MePage() {
       router.replace(session.user.username).catch(console.log);
   }, [router, session, status]);
 
-  if (status === "loading") return <div className="min-h-screen bg-base-200" />;
+  if (status === "loading" || session?.user?.username)
+    return <div className="min-h-screen bg-base-200" />;
 
   return (
     <div className="hero min-h-screen bg-base-200">
