@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { type GetServerSidePropsContext } from "next";
+import { useEffect } from "react";
 
 import { prisma } from "@server/db";
 import PageTabs from "@client/components/PageTabs";
@@ -15,6 +16,13 @@ export default function UserPage({ username }: { username: string }) {
   const { data: session } = useSession();
   const user = session?.user;
   const isMine = user?.username ? user.username === username : false;
+
+  useEffect(() => {
+    if (session?.user && !session.user.username) {
+      const event = new Event("visibilitychange");
+      document.dispatchEvent(event);
+    }
+  }, [session]);
 
   if (typeof curTab !== "string") return null;
 
