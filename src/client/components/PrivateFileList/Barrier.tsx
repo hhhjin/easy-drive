@@ -35,14 +35,13 @@ export default function Barrier({ username }: Props) {
   };
 
   return (
-    <div className="max-w-sm flex-1">
+    <div>
       <form className="form-control" onSubmit={handleSubmit(onSubmit)}>
         <div className="mb-2 text-lg font-semibold">Read Only Password</div>
         <Input
           {...register("readOnlyPassword", { required: true })}
           type="password"
           placeholder="Enter a password"
-          className="w-full"
           button={
             <button className={tw("btn", isLoading && "loading")}>
               {!isLoading && <ArrowRightIcon className="h-6 w-6" />}
