@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { api } from "@client/utils/api";
 import { tw } from "@client/utils/styles";
@@ -16,6 +16,7 @@ interface Props {
 
 export default function FileCard({ file, isMine }: Props) {
   const [isHover, setIsHover] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
 
   const { readOnlyPassword } = useReadOnlyPassword();
@@ -27,6 +28,8 @@ export default function FileCard({ file, isMine }: Props) {
   const handleDownloadClick = async () => {
     const a = downloadLinkRef.current;
     if (!a) return;
+
+    setIsDownloading(true);
 
     const url = await getDownloadUrl.mutateAsync({
       id: file.id,
@@ -40,6 +43,8 @@ export default function FileCard({ file, isMine }: Props) {
     a.setAttribute("download", file.name);
 
     a.click();
+
+    setIsDownloading(false);
   };
 
   const handleDeleteClick = async () => {
@@ -67,7 +72,8 @@ export default function FileCard({ file, isMine }: Props) {
             <button
               className={tw(
                 "btn-primary btn",
-                deleteFile.isLoading ? "btn-disabled" : undefined
+                isDownloading && "loading",
+                deleteFile.isLoading && "btn-disabled"
               )}
               onClick={handleDownloadClick}
             >
@@ -77,7 +83,8 @@ export default function FileCard({ file, isMine }: Props) {
               <button
                 className={tw(
                   "btn-secondary btn",
-                  deleteFile.isLoading ? "loading" : undefined
+                  isDownloading && "btn-disabled",
+                  deleteFile.isLoading && "loading"
                 )}
                 onClick={handleDeleteClick}
               >
