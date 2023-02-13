@@ -15,6 +15,8 @@ export default createNextApiHandler({
           );
         }
       : ({ error }) => {
-          error.message = "Please try it again later.";
+          if (error.code === "INTERNAL_SERVER_ERROR") {
+            error.message = "Please try it again later";
+          }
         },
 });
