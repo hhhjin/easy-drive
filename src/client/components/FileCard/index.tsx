@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 import { api } from "@client/utils/api";
 import { tw } from "@client/utils/styles";
@@ -17,7 +18,6 @@ interface Props {
 export default function FileCard({ file, isMine }: Props) {
   const [isHover, setIsHover] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const downloadLinkRef = useRef<HTMLAnchorElement>(null);
 
   const { readOnlyPassword } = useReadOnlyPassword();
 
@@ -26,23 +26,40 @@ export default function FileCard({ file, isMine }: Props) {
   const deleteFile = api.file.delete.useMutation();
 
   const handleDownloadClick = async () => {
-    const a = downloadLinkRef.current;
-    if (!a) return;
-
     setIsDownloading(true);
 
-    const url = await getDownloadUrl.mutateAsync({
-      id: file.id,
-      readOnlyPassword: isMine ? undefined : readOnlyPassword,
-    });
+    try {
+      const url = await getDownloadUrl.mutateAsync({
+        id: file.id,
+        readOnlyPassword: isMine ? undefined : readOnlyPassword,
+      });
 
-    const res = await fetch(url, { method: "GET" });
-    const blob = await res.blob();
+      const res = await fetch(url, { method: "GET" });
+      const blob = await res.blob();
 
-    a.setAttribute("href", URL.createObjectURL(blob));
-    a.setAttribute("download", file.name);
+      const a = document.createElement("a");
+      const href = URL.createObjectURL(blob);
+      a.setAttribute("download", file.name);
+      a.setAttribute("href", href);
 
-    a.click();
+      document.body.appendChild(a);
+
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(href);
+    } catch (e) {
+      toast.custom((t) => (
+        <div
+          className={tw(
+            "alert alert-error flex max-w-md",
+            t.visible ? "animate-enter" : "animate-leave"
+          )}
+        >
+          Failed to download {file.name}. Try it again later.
+        </div>
+      ));
+    }
 
     setIsDownloading(false);
   };
@@ -68,7 +85,6 @@ export default function FileCard({ file, isMine }: Props) {
         <h2 className="card-title">{file.name}</h2>
         {isHover && (
           <div className="absolute flex h-full w-full flex-col items-center justify-center gap-4 bg-black/40">
-            <a className="hidden" ref={downloadLinkRef} />
             <button
               className={tw(
                 "btn-primary btn",
